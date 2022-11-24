@@ -1,4 +1,4 @@
-use std::{io::Read, rc::Rc};
+use std::io::{self, Read};
 
 use crate::unit::Unit;
 
@@ -10,34 +10,42 @@ pub enum Error {
     Empty,
 }
 
-pub const SIZE: usize = 0x2000;
+pub const SIZE: usize = 0x4000;
 
-#[derive(Clone)]
-pub struct Bank(Rc<[u8; SIZE]>);
+fn check_size(size: usize) -> Result<(), Error> {
+    if size == 0 {
+        Err(Error::ZeroSize)
+    } else if size != SIZE {
+        Err(Error::InvalidBankSize)
+    } else {
+        Ok(())
+    }
+}
+
+fn check_io_result(result: io::Result<usize>) -> Result<(), Error> {
+    match result {
+        Ok(size) => check_size(size),
+        Err(_) => Err(Error::Interrupted),
+    }
+}
+
+pub struct Bank([u8; SIZE]);
 
 impl Bank {
     pub fn new<R: Read>(read: &mut R) -> Result<Self, Error> {
         let mut result = [0; SIZE];
-
-        match read.read(&mut result) {
-            Ok(size) => {
-                if size == 0 {
-                    Err(Error::ZeroSize)
-                } else if size != SIZE {
-                    Err(Error::InvalidBankSize)
-                } else {
-                    Ok(Self(Rc::new(result)))
-                }
-            }
-            Err(_) => Err(Error::Interrupted),
-        }
+        check_io_result(read.read(&mut result))?;
+        Ok(Self(result))
     }
 }
 
 impl Unit for Bank {
     fn read(&self, address: u16) -> u8 {
+        debug_assert!((address as usize) < SIZE);
         self.0[address as usize]
     }
 
-    fn write(&mut self, _address: u16, _data: u8) {}
+    fn write(&mut self, address: u16, _data: u8) {
+        debug_assert!((address as usize) < SIZE);
+    }
 }

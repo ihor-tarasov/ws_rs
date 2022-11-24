@@ -5,7 +5,7 @@ pub mod rom;
 pub use rom::Error;
 use std::ops::RangeInclusive;
 
-use crate::unit::{UnitHolder, Unit};
+use crate::unit::{Unit, UnitHolder};
 
 #[cfg(test)]
 mod rangemap_tests;
