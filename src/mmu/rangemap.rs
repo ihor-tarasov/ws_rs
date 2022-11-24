@@ -1,30 +1,18 @@
-use std::{collections::BTreeMap, ops::RangeInclusive, cmp::Ordering};
+use std::{cmp::Ordering, collections::BTreeMap, ops::RangeInclusive};
 
 struct MapRange<T>(RangeInclusive<T>);
 
 impl<T: Ord> PartialEq for MapRange<T> {
     fn eq(&self, other: &Self) -> bool {
-        if self.0.start() >= other.0.start() && self.0.end() <= other.0.end() {
-            true
-        } else if other.0.start() >= self.0.start() && other.0.end() <= self.0.end() {
-            true
-        } else {
-            false
-        }
+        self.cmp(other) == Ordering::Equal
     }
 }
 
-impl<T: Ord> Eq for MapRange<T> { }
+impl<T: Ord> Eq for MapRange<T> {}
 
 impl<T: Ord> PartialOrd for MapRange<T> {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(if self.0.start() > other.0.end() {
-            Ordering::Greater
-        } else if self.0.end() < other.0.start() {
-            Ordering::Less
-        } else {
-            Ordering::Equal
-        })
+        Some(self.cmp(other))
     }
 }
 
@@ -52,9 +40,12 @@ impl<K: Ord + Copy, V> RangeMap<K, V> {
     }
 
     pub fn insert(&mut self, range: RangeInclusive<K>, v: V) {
-        if self.map.insert(MapRange(range), v).is_some() {
-            panic!("This range already present")
-        }
+        debug_assert!(range.start() <= range.end(), "Reversed range");
+        debug_assert!(
+            !self.map.contains_key(&MapRange(range.clone())),
+            "Range already present or overlaps"
+        );
+        self.map.insert(MapRange(range), v);
     }
 
     pub fn get(&self, k: K) -> Option<&V> {

@@ -7,6 +7,9 @@ use std::ops::RangeInclusive;
 
 use crate::unit::{UnitHolder, Unit};
 
+#[cfg(test)]
+mod rangemap_tests;
+
 pub struct MMU {
     units: rangemap::RangeMap<u16, UnitHolder>,
 }
