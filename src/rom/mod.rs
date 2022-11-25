@@ -7,9 +7,11 @@ mod switchable;
 use bank::Bank;
 pub use bank::Error;
 
-use super::{utils::UnitRef, MMU};
+use crate::utils::bus::BusRef;
 
-type Banks = Vec<UnitRef<Bank>>;
+use super::MMU;
+
+type Banks = Vec<BusRef<Bank>>;
 
 fn end_of_read(banks: Banks) -> Result<Banks, Error> {
     if banks.is_empty() {
@@ -37,9 +39,9 @@ fn load_banks<R: Read>(mut read: R) -> Result<Banks, Error> {
         match Bank::new(&mut read) {
             Ok(bank) => {
                 if banks.len() > 4 {
-                    return Err(Error::MoreThan4Banks)
+                    return Err(Error::MoreThan4Banks);
                 } else {
-                    banks.push(UnitRef::new(bank))
+                    banks.push(BusRef::new(bank))
                 }
             }
             Err(error) => return process_error(error, banks),

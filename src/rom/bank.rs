@@ -1,6 +1,5 @@
 use std::io::{self, Read};
-
-use crate::unit::Unit;
+use crate::cpu::Bus;
 
 #[derive(Debug, PartialEq)]
 pub enum Error {
@@ -40,7 +39,7 @@ impl Bank {
     }
 }
 
-impl Unit for Bank {
+impl Bus for Bank {
     fn read(&self, address: u16) -> u8 {
         debug_assert!((address as usize) < SIZE);
         self.0[address as usize]

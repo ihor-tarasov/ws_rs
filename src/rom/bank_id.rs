@@ -1,4 +1,4 @@
-use crate::{unit::Unit};
+use crate::cpu::Bus;
 
 pub struct BankID(u8);
 
@@ -12,7 +12,7 @@ impl BankID {
     }
 }
 
-impl Unit for BankID {
+impl Bus for BankID {
     fn read(&self, address: u16) -> u8 {
         debug_assert_eq!(address, 0);
         self.get()

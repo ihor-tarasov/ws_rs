@@ -1,4 +1,4 @@
-use crate::mmu::rangemap::RangeMap;
+use crate::utils::RangeMap;
 
 #[test]
 fn insert_and_get() {

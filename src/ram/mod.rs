@@ -1,6 +1,6 @@
 mod bank;
-use super::MMU;
 use bank::Bank;
+use crate::MMU;
 
 pub fn load(mmu: &mut MMU) {
     mmu.insert(0x0000..=0x1FFF, Bank::new());

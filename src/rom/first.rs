@@ -1,12 +1,12 @@
-use crate::{mmu::{MMU, utils::UnitRef}, unit::Unit};
+use crate::{utils::bus::BusRef, cpu::Bus, MMU};
 
 use super::bank::Bank;
 
 pub const SIZE: usize = 0x2000;
 
-struct First(UnitRef<Bank>);
+struct First(BusRef<Bank>);
 
-impl Unit for First {
+impl Bus for First {
     fn read(&self, address: u16) -> u8 {
         debug_assert!((address as usize) < SIZE);
         self.0.read(address)
@@ -18,7 +18,7 @@ impl Unit for First {
     }
 }
 
-pub fn assign(mmu: &mut MMU, bank: UnitRef<Bank>) {
+pub fn assign(mmu: &mut MMU, bank: BusRef<Bank>) {
     mmu.insert(0x6000..=0x7FFF, bank);
     println!("[ROM][BANK0] Assigned to address [0x6000-0x7FFF]");
 }

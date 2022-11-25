@@ -1,4 +1,4 @@
-use crate::unit::Unit;
+use crate::cpu::Bus;
 
 const SIZE: usize = 0x2000;
 
@@ -10,7 +10,7 @@ impl Bank {
     }
 }
 
-impl Unit for Bank {
+impl Bus for Bank {
     fn read(&self, address: u16) -> u8 {
         self.0[address as usize]
     }

@@ -1,38 +1,25 @@
-pub mod ram;
-mod rangemap;
-pub mod rom;
-mod utils;
-
-pub use rom::Error;
+mod bus_holder;
+use crate::{cpu::Bus, utils::RangeMap};
 use std::ops::RangeInclusive;
 
-use crate::unit::Unit;
+use self::bus_holder::BusHolder;
 
-use self::utils::UnitHolder;
-
-#[cfg(test)]
-mod rangemap_tests;
-
-pub struct MMU {
-    units: rangemap::RangeMap<u16, UnitHolder>,
-}
+pub struct MMU(RangeMap<u16, BusHolder>);
 
 impl MMU {
     pub fn new() -> Self {
-        Self {
-            units: rangemap::RangeMap::new(),
-        }
+        Self(RangeMap::new())
     }
 
-    pub fn insert<U: Unit + 'static>(&mut self, range: RangeInclusive<u16>, unit: U) {
-        self.units
-            .insert(range.clone(), UnitHolder::new(unit, *range.start()));
+    pub fn insert<B: Bus + 'static>(&mut self, range: RangeInclusive<u16>, bus: B) {
+        self.0
+            .insert(range.clone(), BusHolder::new(bus, *range.start()));
     }
 }
 
-impl Unit for MMU {
+impl Bus for MMU {
     fn read(&self, address: u16) -> u8 {
-        if let Some(unit) = self.units.get(address) {
+        if let Some(unit) = self.0.get(address) {
             unit.read(address)
         } else {
             panic!("[MMU] Not units registered at address 0x{address:4X} for read.")
@@ -40,7 +27,7 @@ impl Unit for MMU {
     }
 
     fn write(&mut self, address: u16, data: u8) {
-        if let Some(unit) = self.units.get_mut(address) {
+        if let Some(unit) = self.0.get_mut(address) {
             unit.write(address, data)
         } else {
             panic!("[MMU] Not units registered at address 0x{address:4X} for write.")
