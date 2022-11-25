@@ -8,6 +8,7 @@ pub enum Error {
     InvalidBankSize,
     ZeroSize,
     Empty,
+    MoreThan4Banks,
 }
 
 pub const SIZE: usize = 0x4000;

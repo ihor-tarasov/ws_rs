@@ -7,11 +7,11 @@ mod switchable;
 use bank::Bank;
 pub use bank::Error;
 
-use crate::unit::UnitRef;
+use super::{utils::UnitRef, MMU};
 
-use super::MMU;
+type Banks = Vec<UnitRef<Bank>>;
 
-fn end_of_read(banks: Vec<UnitRef<Bank>>) -> Result<Vec<UnitRef<Bank>>, Error> {
+fn end_of_read(banks: Banks) -> Result<Banks, Error> {
     if banks.is_empty() {
         Err(Error::Empty)
     } else {
@@ -24,24 +24,30 @@ fn end_of_read(banks: Vec<UnitRef<Bank>>) -> Result<Vec<UnitRef<Bank>>, Error> {
     }
 }
 
-fn process_error(error: Error, banks: Vec<UnitRef<Bank>>) -> Result<Vec<UnitRef<Bank>>, Error> {
+fn process_error(error: Error, banks: Banks) -> Result<Banks, Error> {
     match error {
         Error::ZeroSize => end_of_read(banks),
         _ => Err(error),
     }
 }
 
-fn load_banks<R: Read>(mut read: R) -> Result<Vec<UnitRef<Bank>>, Error> {
+fn load_banks<R: Read>(mut read: R) -> Result<Banks, Error> {
     let mut banks = Vec::new();
     loop {
         match Bank::new(&mut read) {
-            Ok(bank) => banks.push(UnitRef::new(bank)),
+            Ok(bank) => {
+                if banks.len() > 4 {
+                    return Err(Error::MoreThan4Banks)
+                } else {
+                    banks.push(UnitRef::new(bank))
+                }
+            }
             Err(error) => return process_error(error, banks),
         }
     }
 }
 
-fn assign_last_bank(mmu: &mut MMU, banks: &Vec<UnitRef<Bank>>) {
+fn assign_last_bank(mmu: &mut MMU, banks: &Banks) {
     let last_index = banks.len() - 1;
     mmu.insert(0xC000..=0xFFFF, banks[last_index].clone());
     println!("[ROM][BANK{last_index}] Assigned as last bank to address [0xC000-0xFFFF]");

@@ -1,4 +1,4 @@
-use crate::{unit::{UnitRef, Unit}, mmu::MMU};
+use crate::{mmu::{MMU, utils::UnitRef}, unit::Unit};
 
 use super::bank::Bank;
 

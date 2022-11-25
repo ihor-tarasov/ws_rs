@@ -1,7 +1,10 @@
 use super::{bank::Bank, bank_id::BankID};
 use crate::{
-    mmu::MMU,
-    unit::{Unit, UnitRef, UnitRefMut},
+    mmu::{
+        utils::{UnitRef, UnitRefMut},
+        MMU,
+    },
+    unit::Unit,
 };
 
 const BANKS_MAX: usize = 4;
@@ -25,14 +28,16 @@ impl Unit for Switchable {
     fn write(&mut self, _address: u16, _data: u8) {}
 }
 
+const BANK_MAP: [[usize; 4]; 4] = [[0, 0, 0, 0], [0, 1, 0, 1], [0, 1, 2, 0], [0, 1, 2, 3]];
+
 fn fill_mirrors(banks: Vec<UnitRef<Bank>>) -> [UnitRef<Bank>; BANKS_MAX] {
-    match banks.len() {
-        1 => [banks[0].clone(), banks[0].clone(), banks[0].clone(), banks[0].clone()],
-        2 => [banks[0].clone(), banks[1].clone(), banks[0].clone(), banks[1].clone()],
-        3 => [banks[0].clone(), banks[1].clone(), banks[2].clone(), banks[0].clone()],
-        4 => [banks[0].clone(), banks[1].clone(), banks[2].clone(), banks[3].clone()],
-        _ => panic!("Incorrect banks count"),
-    }
+    let indexes = BANK_MAP[banks.len() - 1];
+    [
+        banks[indexes[0]].clone(),
+        banks[indexes[1]].clone(),
+        banks[indexes[2]].clone(),
+        banks[indexes[3]].clone(),
+    ]
 }
 
 pub fn assign(mmu: &mut MMU, banks: Vec<UnitRef<Bank>>) {

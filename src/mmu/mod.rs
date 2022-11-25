@@ -1,11 +1,14 @@
 pub mod ram;
 mod rangemap;
 pub mod rom;
+mod utils;
 
 pub use rom::Error;
 use std::ops::RangeInclusive;
 
-use crate::unit::{Unit, UnitHolder};
+use crate::unit::Unit;
+
+use self::utils::UnitHolder;
 
 #[cfg(test)]
 mod rangemap_tests;
